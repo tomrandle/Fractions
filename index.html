@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>gRaphaël Static Pie Chart</title>
+
+
+        <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.min.js"></script>
+        <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
+
+        <script src="raphael-min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="g.raphael.js" type="text/javascript" charset="utf-8"></script>
+        <script src="g.pie.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script type="text/javascript">
+            
+            window.onload = function () {
+
+		    var pies = [];
+		 	
+		 	/* Create a canvas */
+
+		 	var canvasWidth = $(window).width();
+            var canvasHeight = $(window).height();
+
+
+			var canvas = Raphael(10,300, canvasWidth, canvasHeight);
+
+
+			/* Pie object */
+
+		 	function pie(numerator, denominator, x, y, size, color) {
+				
+		 		this.denominator = denominator,
+		 		this.numerator = numerator,
+				this.size = 100 / this.denominator, 
+				this.segmentArray = [],
+				this.colorArray = [],
+				this.color = color;
+				this.x = x;
+				this.y = y;
+				this.size = size;
+
+				this.draw = function() {
+
+					for (var i=0; i < this.denominator; i++) {
+
+						this.segmentArray.push(this.size);
+
+						if (i < this.numerator) {
+							this.colorArray.push(this.color);
+						}
+
+						else {
+							this.colorArray.push('#887C8B');
+						
+						}
+					}
+					
+					canvas.piechart(this.x, this.y, this.size, this.segmentArray, { stroke: "#6A5E6D", strokewidth: 0,  colors: this.colorArray});
+
+				}
+			};
+
+
+				function calculation (aN, aD, bN, bD, operator) {
+
+					var oD; 
+					var oN;
+		
+					switch (operator) {
+	  					case "+":
+	  						oN = (aN * bD) + (bN * aD);
+	  						oD = aD * bD;
+	    					break;
+	  					case "-":
+							oN = (aN * bD) - (bN * aD);
+	  						oD = aD * bD;
+	  						break;
+	    			
+	    				case "*": 
+	    					oN = aN * bN;
+	    					oD = aD * bD;
+	    					break;
+
+	    				case "/": 
+							oD = bN * aD;
+	    					oN = aN * bD;
+	    					
+	    					break;
+    					};
+
+    				return([oN, oD]);
+
+    				};
+
+
+
+
+				/* Activates knockout.js */
+					
+				ko.applyBindings(new AppViewModel());
+
+				function AppViewModel() {
+    				this.aNumerator = ko.observable("1");
+    				this.bNumerator = ko.observable("1");
+    				this.aDenominator = ko.observable("2");
+    				this.bDenominator = ko.observable("4");
+    				this.operator = ko.observable("+");
+
+    				this.cNumerator = ko.computed(function() {
+    					return calculation(this.aNumerator(), this.aDenominator(), this.bNumerator(), this.bDenominator(), this.operator())[0];
+    				}, this);
+
+					this.cDenominator = ko.computed(function() {
+    					return calculation(this.aNumerator(), this.aDenominator(), this.bNumerator(), this.bDenominator(), this.operator())[1];
+    				}, this);
+
+
+					this.draw = ko.computed(function() { 
+						drawPies(this.aNumerator(), this.aDenominator(), this.bNumerator(), this.bDenominator(), this.cNumerator(), this.cDenominator());
+				}, this);
+				};
+
+				function drawPies(aN, aD, bN, bD, cN, cD) {
+
+					pies[0] = new pie(aN,aD,150,155,150,'#6A5E6D');
+					pies[1] = new pie(bN,bD,500,155,150,'#6A5E6D');
+					pies[2] = new pie(cN,cD,850,155,150,'#6A5E6D');
+
+					pies[0].draw();
+					pies[1].draw();
+					pies[2].draw();
+				};
+
+				
+		};
+
+
+        </script>
+
+        <style type="text/css">
+        	body {font-family: arial; background:#200C2B; color:#6A5E6D;}
+        	table {font-size: 20px;}
+
+        	td {width: 50px; text-align: center; font-size: 24px;}
+        	td input {width: 40px; text-align: center; border: 0; font-size: 24px; background: none; color: #6A5E6D;}
+        	td.numerator {border-bottom:4px solid #6A5E6D;}
+
+        </style>
+
+
+    </head>
+
+    <body>
+    	<h1>Fractions</h1>
+
+    	<table>
+
+    		<tr>
+    			<td class='numerator'><input type="text" data-bind="value: aNumerator"></td>
+    			 <td rowspan="2"><input type="text" data-bind="value: operator"></td>
+    			<td class='numerator'><input type="text" data-bind="value: bNumerator"></td>
+    			<td rowspan="2">=</td>
+    			<td class='numerator' data-bind="text: cNumerator"></td>
+    		</tr>
+    		<tr>
+    			<td><input type="text" data-bind="value: aDenominator"></td>
+    			<td><input type="text" data-bind="value: bDenominator"></td>
+    			<td data-bind="text: cDenominator"></td>
+    		</tr>
+
+
+    	</table>
+    </body>
+
+</html>
